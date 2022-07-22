@@ -20,8 +20,10 @@
  *    console.log(r.height);      // => 20
  *    console.log(r.getArea());   // => 200
  */
-function Rectangle(/* width, height */) {
-  throw new Error('Not implemented');
+function Rectangle(width, height) {
+  this.width = width;
+  this.height = height;
+  this.getArea = () => this.height * this.width;
 }
 
 
@@ -35,8 +37,8 @@ function Rectangle(/* width, height */) {
  *    [1,2,3]   =>  '[1,2,3]'
  *    { width: 10, height : 20 } => '{"height":10,"width":20}'
  */
-function getJSON(/* obj */) {
-  throw new Error('Not implemented');
+function getJSON(obj) {
+  return JSON.stringify(obj);
 }
 
 
@@ -51,8 +53,8 @@ function getJSON(/* obj */) {
  *    const r = fromJSON(Circle.prototype, '{"radius":10}');
  *
  */
-function fromJSON(/* proto, json */) {
-  throw new Error('Not implemented');
+function fromJSON(proto, json) {
+  return Object.assign(Object.create(proto), JSON.parse(json));
 }
 
 
@@ -111,32 +113,114 @@ function fromJSON(/* proto, json */) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    if (this.el) {
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+    if (this.index > 1) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    const result = { ...this };
+    if (result.el) {
+      result.el += value;
+    } else {
+      result.el = value;
+    }
+    result.index = 1;
+    return result;
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    if (this.idValue) {
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+    if (this.index > 2) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    const result = { ...this };
+    if (result.idValue) {
+      result.idValue += `#${value}`;
+    } else {
+      result.idValue = `#${value}`;
+    }
+    result.index = 2;
+    return result;
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    if (this.index > 3) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    const result = { ...this };
+    if (result.classValue) {
+      result.classValue += `.${value}`;
+    } else {
+      result.classValue = `.${value}`;
+    }
+    result.index = 3;
+    return result;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    if (this.index > 4) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    const result = { ...this };
+    if (result.attrValue) {
+      result.attrValue += `[${value}]`;
+    } else {
+      result.attrValue = `[${value}]`;
+    }
+    result.index = 4;
+    return result;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    if (this.index > 5) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    const result = { ...this };
+    if (result.pseudoClassValue) {
+      result.pseudoClassValue += `:${value}`;
+    } else {
+      result.pseudoClassValue = `:${value}`;
+    }
+    result.index = 5;
+    return result;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    if (this.pseudoElementValue) {
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+    if (this.result > 6) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    const result = { ...this };
+    if (result.pseudoElementValue) {
+      result.pseudoElementValue += `::${value}`;
+    } else {
+      result.pseudoElementValue = `::${value}`;
+    }
+    result.index = 6;
+    return result;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    const result = { ...this };
+    if (result.value) {
+      result.value += `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+    } else {
+      result.value = `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+    }
+    return result;
+  },
+
+  stringify() {
+    if (this.value) {
+      return this.value;
+    }
+    return (this.el ? this.el : '') + (this.idValue ? this.idValue : '') + (this.classValue ? this.classValue : '') + (this.attrValue ? this.attrValue : '') + (this.pseudoClassValue ? this.pseudoClassValue : '') + (this.pseudoElementValue ? this.pseudoElementValue : '');
   },
 };
 
